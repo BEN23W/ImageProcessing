@@ -1,4 +1,10 @@
+#include<stdint.h>
+#include<cstdio>
 
+
+enum ImageType {
+	PNG, JPG, BMP, TGA
+};
 
 struct Image{
     uint8_t* data = NULL; //unsigned int 8 bytes
@@ -7,11 +13,12 @@ struct Image{
     int height;
     int channels;
 
-    Image(const char* filename);
+    Image(const char* filename, int channel_force=0);
     Image(int width, int height, int channels);
-    Image(cont Image& img);
+    Image(const Image& img);
     ~Image();
 
-    bool read(const char* filename);
+    bool read(const char* filename, int channel_force = 0);
     bool write(const char* filename);
-}
+    ImageType get_file_type(const char* filename);
+};

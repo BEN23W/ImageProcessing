@@ -4,11 +4,11 @@
 
 # Compiler settings - Can be customized.
 CC = g++
-CXXFLAGS = -std=c++11 -Wall
+CFLAGS = -std=c++17 -g
 LDFLAGS = 
 
 # Makefile settings - Can be customized.
-APPNAME = myapp
+APPNAME = imageproc
 EXT = .cpp
 SRCDIR = src
 OBJDIR = obj
