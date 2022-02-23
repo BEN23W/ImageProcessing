@@ -89,15 +89,94 @@ ImageType Image::get_file_type(const char* filename){
 Image& Image::grayscale_avg(){
   
   if(channels < 3){
+    //If image has less than three channels it is already grayscale
     printf("Image %p has less than three channels");
+  
+  }
+  else {
+          for(int i = 0; i<size; i+=channels){
+            int gray = (data[i] + data[i+1] + data[i+2])/3;
+            memset(data+i, gray, 3);
+          }
+
   }
 
+  return *this;
+
 }
+/* Since R,G and B have a different contribution in the 
+   formation of the image, it is better to take a weighted sum to 
+   calculate linear luminance (Y = 0.2126R + 0.7152G + 0.0722B) 
+   stb_image.h does gamma does the gamma compression */
 Image& Image::grayscale_lumins(){
+  	if(channels < 3) {
+		printf("Image %p has less than 3 channels, it is assumed to already be grayscale.", this);
+	}
+	else {
+		for(int i = 0; i < size; i+=channels) {
+			int gray = 0.2126*data[i] + 0.7152*data[i+1] + 0.0722*data[i+2];
+			memset(data+i, gray, 3);
+		}
+	}
+	return *this;
 
 }
 
+Image& Image::colorMask(float r, float g, float b){
+  if(channels < 3){
+    printf("[ERROR] Color mask requires at least 3 channels, but this image has %d channels", channels);
+  }
+  else{
+    for(int i=0; i<size; i+=channels){
+      data[i] *= r;
+      data[i+2] *= g;
+      data[i+3] *= b;
+    }
+  }
+  return *this;
+}
 
+Image& Image::encodeMessage(const char* message) {
+	uint32_t len = strlen(message) * 8;
+	if(len + STEG_HEADER_SIZE > size) {
+		printf("[ERROR] This message is too large (%lu bits / %zu bits)\n", len+STEG_HEADER_SIZE, size);
+		return *this;
+	}
+
+	for(uint8_t i = 0;i < STEG_HEADER_SIZE;++i) {
+		data[i] &= 0xFE;
+		data[i] |= (len >> (STEG_HEADER_SIZE - 1 - i)) & 1UL;
+	}
+
+	for(uint32_t i = 0;i < len;++i) {
+		data[i+STEG_HEADER_SIZE] &= 0xFE;
+		data[i+STEG_HEADER_SIZE] |= (message[i/8] >> ((len-1-i)%8)) & 1;
+	}
+
+	return *this;
+}
+
+Image& Image::decodeMessage(char* buffer, size_t* messageLength) {
+	uint32_t len = 0;
+	for(uint8_t i = 0;i < STEG_HEADER_SIZE;++i) {
+		len = (len << 1) | (data[i] & 1);
+	}
+	*messageLength = len / 8;
+
+	for(uint32_t i = 0;i < len;++i) {
+		buffer[i/8] = (buffer[i/8] << 1) | (data[i+STEG_HEADER_SIZE] & 1);
+	}
+
+
+	return *this;
+}
+
+Image& Image::diffmap(Image& img){
+
+  
+
+
+}
 
 
 
